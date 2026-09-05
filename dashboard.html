@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"
+            type="text/javascript"></script>
+
+    <style>
+
+        body {
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .brand span {
+            color: #ff3b3b;
+        }
+
+        .logout-btn {
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            color: white;
+        }
+
+        .welcome-card,
+        .profile-card,
+        .attendance-card {
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .welcome-card p,
+        .attendance-card p {
+            color: #aaa;
+        }
+
+        .profile-title {
+            margin-bottom: 25px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .profile-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .profile-item small {
+            display: block;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .scan-btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff3b3b, #ff6b6b);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 25px auto;
+            display: none;
+        }
+
+        #scanner-message {
+            margin-top: 15px;
+            color: #aaa;
+        }
+
+        @media (max-width: 700px) {
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- TOP BAR -->
+
+    <div class="topbar">
+
+        <div class="brand">
+            Smart<span>Attendance</span>
+        </div>
+
+        <a href="/logout" class="logout-btn">
+            Logout
+        </a>
+
+    </div>
+
+
+    <!-- WELCOME -->
+
+    <div class="card welcome-card">
+
+        <h1>
+            Welcome, {{ student["name"] }} 👋
+        </h1>
+
+        <p>
+            Manage your attendance and student information from here.
+        </p>
+
+    </div>
+
+
+    <!-- PROFILE -->
+
+    <div class="card profile-card">
+
+        <h2 class="profile-title">
+            👤 Student Profile
+        </h2>
+
+        <div class="profile-grid">
+
+            <div class="profile-item">
+                <small>Name</small>
+                <strong>{{ student["name"] }}</strong>
+            </div>
+
+            <div class="profile-item">
+                <small>Father Name</small>
+                <strong>{{ student["father_name"] }}</strong>
+            </div>
+
+            <div class="profile-item">
+                <small>Class / Course</small>
+                <strong>{{ student["class_name"] }}</strong>
+            </div>
+
+            <div class="profile-item">
+                <small>Roll Number</small>
+                <strong>{{ student["roll_number"] }}</strong>
+            </div>
+
+            <div class="profile-item">
+                <small>Email</small>
+                <strong>{{ student["email"] }}</strong>
+            </div>
+
+            <div class="profile-item">
+                <small>Contact</small>
+                <strong>{{ student["contact"] }}</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SCANNER -->
+
+    <div class="card attendance-card">
+
+        <h2>📷 Mark Your Attendance</h2>
+
+        <p>
+            Scan today's QR code provided by your teacher.
+        </p>
+
+        <button class="scan-btn" onclick="startScanner()">
+            Scan QR Code
+        </button>
+
+        <div id="reader"></div>
+
+        <p id="scanner-message"></p>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    let scanner;
+
+    function startScanner() {
+
+        const reader = document.getElementById("reader");
+        const message = document.getElementById("scanner-message");
+
+        reader.style.display = "block";
+
+        message.innerText = "Camera start ho raha hai...";
+
+        scanner = new Html5Qrcode("reader");
+
+        scanner.start(
+            { facingMode: "environment" },
+
+            {
+                fps: 10,
+                qrbox: 250
+            },
+
+            function(decodedText) {
+
+                message.innerText =
+                    "QR Code scan ho gaya!";
+
+                console.log("QR Code:", decodedText);
+
+                scanner.stop();
+
+            },
+
+            function(errorMessage) {
+
+                // QR abhi detect nahi hua
+                console.log(errorMessage);
+
+            }
+
+        ).catch(function(error) {
+
+            message.innerText =
+                "Camera start nahi ho saka.";
+
+            console.log(error);
+
+        });
+
+    }
+
+</script>
+
+</body>
+
+</html>

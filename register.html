@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Registration</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="card form-container">
+
+            <div class="logo">
+                SA
+            </div>
+
+            <h1>Student Registration</h1>
+
+            <p class="form-subtitle">
+                Create your student account
+            </p>
+
+            <form action="/register" method="POST">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="name" placeholder="Enter your name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Father's Name</label>
+                        <input type="text" name="father_name" placeholder="Enter father's name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Class / Course</label>
+                        <input type="text" name="class_name" placeholder="Enter class or course" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Roll Number</label>
+                        <input type="text" name="roll_number" placeholder="Enter roll number" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="Enter email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" name="contact" placeholder="Enter contact number" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Create a password" required>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-primary full-btn">
+                    Create Account
+                </button>
+
+            </form>
+
+            <p class="bottom-text">
+                Already have an account?
+                <a href="/login">Login</a>
+            </p>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+
