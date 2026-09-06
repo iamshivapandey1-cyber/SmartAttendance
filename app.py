@@ -162,7 +162,110 @@ def dashboard():
         student=student
     )
 
+# ---------------- MARK ATTENDANCE ----------------
 
+
+@app.route("/mark-attendance", methods=["POST"])
+def mark_attendance():
+    if "student_id" not in session:
+        return redirect(url_for("login"))
+
+    from datetime import datetime
+
+    student_id = session["student_id"]
+    now = datetime.now()
+
+    date = now.strftime("%Y-%m-%d")
+    time = now.strftime("%H:%M:%S")
+
+    conn = get_db()
+
+    try:
+        conn.execute("""
+            INSERT INTO attendance
+            (student_id, date, time, status)
+            VALUES (?, ?, ?, ?)
+        """, (student_id, date, time, "Present"))
+
+        conn.commit()
+        message = "Attendance successfully marked!"
+
+    except sqlite3.IntegrityError:
+        message = "Aaj ki attendance already marked hai!"
+
+    conn.close()
+
+    return message
+
+# ---------------- MONTHLY ATTENDANCE ----------------
+
+@app.route("/monthly-record")
+def monthly_record():
+
+    if "student_id" not in session:
+        return redirect(url_for("login"))
+
+    from datetime import datetime
+
+    month = request.args.get("month")
+
+    if not month:
+        month = datetime.now().strftime("%Y-%m")
+
+    conn = get_db()
+
+    students = conn.execute("""
+        SELECT id, name, father_name, class_name, roll_number
+        FROM students
+        ORDER BY roll_number
+    """).fetchall()
+
+    records = []
+
+    for student in students:
+
+        present = conn.execute("""
+            SELECT COUNT(*)
+            FROM attendance
+            WHERE student_id = ?
+            AND status = 'Present'
+            AND substr(date, 1, 7) = ?
+        """, (student["id"], month)).fetchone()[0]
+
+        absent = conn.execute("""
+            SELECT COUNT(*)
+            FROM attendance
+            WHERE student_id = ?
+            AND status = 'Absent'
+            AND substr(date, 1, 7) = ?
+        """, (student["id"], month)).fetchone()[0]
+
+        total = present + absent
+
+        percentage = 0
+
+        if total > 0:
+            percentage = round((present / total) * 100, 2)
+
+        records.append({
+            "id": student["id"],
+            "name": student["name"],
+            "father_name": student["father_name"],
+            "class_name": student["class_name"],
+            "roll_number": student["roll_number"],
+            "present": present,
+            "absent": absent,
+            "total": total,
+            "percentage": percentage
+        })
+
+    conn.close()
+
+    return render_template(
+        "monthly_record.html",
+        records=records,
+        month=month
+    )
 # ---------------- LOGOUT ----------------
 
 @app.route("/logout")
