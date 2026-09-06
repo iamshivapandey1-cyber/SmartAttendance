@@ -97,6 +97,28 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .attendance-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.record-btn {
+    display: inline-block;
+    padding: 14px 30px;
+    border: 1px solid #444;
+    border-radius: 12px;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    background: rgba(255,255,255,0.05);
+}
+
+.record-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
 
         #reader {
             width: 100%;
@@ -217,10 +239,17 @@
             Scan today's QR code provided by your teacher.
         </p>
 
-        <button class="scan-btn" onclick="startScanner()">
-            Scan QR Code
-        </button>
+        <div class="attendance-actions">
 
+    <button class="scan-btn" onclick="startScanner()">
+        📷 Scan QR Code
+    </button>
+
+    <a href="/monthly-record" class="record-btn">
+        📊 Monthly Record
+    </a>
+
+</div>
         <div id="reader"></div>
 
         <p id="scanner-message"></p>
@@ -255,14 +284,25 @@
 
             function(decodedText) {
 
-                message.innerText =
-                    "QR Code scan ho gaya!";
+    message.innerText = "QR Code scan ho gaya!";
 
-                console.log("QR Code:", decodedText);
+    console.log("QR Code:", decodedText);
 
-                scanner.stop();
+    scanner.stop();
 
-            },
+    fetch("/mark-attendance", {
+        method: "POST"
+    })
+    .then(response => response.text())
+    .then(data => {
+        message.innerText = data;
+    })
+    .catch(error => {
+        message.innerText = "Attendance mark nahi ho saki.";
+        console.log(error);
+    });
+
+},
 
             function(errorMessage) {
 
