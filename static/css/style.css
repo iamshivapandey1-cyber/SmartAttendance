@@ -1,0 +1,394 @@
+
+/* ================================
+   SMART ATTENDANCE SYSTEM
+   PREMIUM DARK THEME
+================================ */
+
+
+/* ---------- RESET ---------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ---------- BODY ---------- */
+
+body {
+    min-height: 100vh;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    background:
+        radial-gradient(circle at top left, #25205a 0%, transparent 35%),
+        radial-gradient(circle at bottom right, #35134f 0%, transparent 35%),
+        #080812;
+
+    color: #ffffff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+}
+
+
+/* ---------- MAIN CONTAINER ---------- */
+
+.container {
+    width: 100%;
+    max-width: 950px;
+
+    display: flex;
+    justify-content: center;
+}
+
+
+/* ---------- CARD ---------- */
+
+.card {
+    width: 100%;
+
+    background: rgba(20, 20, 35, 0.82);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 24px;
+
+    padding: 45px;
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    backdrop-filter: blur(18px);
+}
+
+
+/* ---------- HOME PAGE ---------- */
+
+.home {
+    max-width: 650px;
+    text-align: center;
+}
+
+
+/* ---------- LOGO ---------- */
+
+.logo {
+    width: 75px;
+    height: 75px;
+
+    margin: 0 auto 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 20px;
+
+    background: linear-gradient(
+        135deg,
+        #6d5dfc,
+        #a855f7
+    );
+
+    font-size: 25px;
+    font-weight: bold;
+
+    box-shadow:
+        0 10px 35px rgba(108, 92, 246, 0.4);
+}
+
+
+/* ---------- HEADINGS ---------- */
+
+h1 {
+    font-size: 38px;
+
+    margin-bottom: 15px;
+
+    letter-spacing: -1px;
+}
+
+
+/* ---------- SUBTITLE ---------- */
+
+.subtitle,
+.form-subtitle {
+    color: #a9a9bb;
+
+    font-size: 16px;
+
+    line-height: 1.6;
+}
+
+.form-subtitle {
+    margin-bottom: 35px;
+}
+
+
+/* ---------- BUTTON AREA ---------- */
+
+.buttons {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    margin-top: 35px;
+}
+
+
+/* ---------- BUTTON ---------- */
+
+.btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 170px;
+
+    padding: 15px 25px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    border: none;
+
+    cursor: pointer;
+
+    transition: 0.25s ease;
+}
+
+
+/* ---------- PRIMARY BUTTON ---------- */
+
+.btn-primary {
+    color: white;
+
+    background: linear-gradient(
+        135deg,
+        #6d5dfc,
+        #8b5cf6
+    );
+
+    box-shadow:
+        0 8px 25px rgba(109, 93, 252, 0.3);
+}
+
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 12px 35px rgba(109, 93, 252, 0.5);
+}
+
+
+/* ---------- SECONDARY BUTTON ---------- */
+
+.btn-secondary {
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.06);
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+.btn-secondary:hover {
+    transform: translateY(-3px);
+
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
+/* ---------- FORM CONTAINER ---------- */
+
+.form-container {
+    max-width: 850px;
+}
+
+
+/* ---------- FORM GRID ---------- */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 22px;
+}
+
+
+/* ---------- FORM GROUP ---------- */
+
+.form-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+/* ---------- LABEL ---------- */
+
+.form-group label {
+    color: #dddded;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+/* ---------- INPUT ---------- */
+
+.form-group input {
+    width: 100%;
+
+    padding: 15px 16px;
+
+    border-radius: 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    outline: none;
+
+    background: rgba(255, 255, 255, 0.045);
+
+    color: white;
+
+    font-size: 15px;
+
+    transition: 0.25s ease;
+}
+
+
+/* ---------- PLACEHOLDER ---------- */
+
+.form-group input::placeholder {
+    color: #77778a;
+}
+
+
+/* ---------- INPUT FOCUS ---------- */
+
+.form-group input:focus {
+    border-color: #796cff;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    box-shadow:
+        0 0 0 3px rgba(109, 93, 252, 0.12);
+}
+
+
+/* ---------- FULL WIDTH ---------- */
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+
+/* ---------- FULL BUTTON ---------- */
+
+.full-btn {
+    width: 100%;
+
+    margin-top: 28px;
+}
+
+
+/* ---------- BOTTOM TEXT ---------- */
+
+.bottom-text {
+    margin-top: 25px;
+
+    text-align: center;
+
+    color: #858597;
+
+    font-size: 14px;
+}
+
+
+.bottom-text a {
+    color: #9186ff;
+
+    text-decoration: none;
+
+    font-weight: 600;
+}
+
+
+.bottom-text a:hover {
+    text-decoration: underline;
+}
+
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 700px) {
+
+    body {
+        padding: 18px;
+    }
+
+    .card {
+        padding: 30px 22px;
+
+        border-radius: 20px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: auto;
+    }
+
+    .buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+
+/* ---------- SMALL MOBILE ---------- */
+
+@media (max-width: 400px) {
+
+    .card {
+        padding: 25px 18px;
+    }
+
+    h1 {
+        font-size: 26px;
+    }
+
+    .logo {
+        width: 65px;
+        height: 65px;
+    }
+}
