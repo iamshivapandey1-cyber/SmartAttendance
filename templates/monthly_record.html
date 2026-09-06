@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Monthly Attendance Record | SmartAttendance</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: white;
+
+            background:
+                radial-gradient(circle at top left, rgba(255, 59, 59, 0.15), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(255, 59, 59, 0.10), transparent 35%),
+                #080808;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+
+            background: rgba(20, 20, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+
+            padding: 35px;
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+            backdrop-filter: blur(15px);
+        }
+
+        /* HEADER */
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .brand span {
+            color: #ff3b3b;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-top: 7px;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            padding: 11px 18px;
+            border-radius: 10px;
+
+            border: 1px solid #333;
+            background: rgba(255,255,255,0.04);
+
+            transition: 0.25s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,59,59,0.12);
+            border-color: #ff3b3b;
+        }
+
+
+        /* TITLE */
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+
+        /* FILTER */
+
+        .filter {
+            margin-top: 30px;
+            padding: 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+
+            border-radius: 15px;
+
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .filter label {
+            color: #aaa;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .filter input {
+            background: #111;
+            color: white;
+
+            border: 1px solid #333;
+            border-radius: 9px;
+
+            padding: 11px 14px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .filter input:focus {
+            border-color: #ff3b3b;
+        }
+
+        .filter button {
+            padding: 12px 22px;
+
+            border: none;
+            border-radius: 9px;
+
+            background: linear-gradient(
+                135deg,
+                #ff3030,
+                #ff5c5c
+            );
+
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+
+            cursor: pointer;
+
+            box-shadow: 0 8px 20px rgba(255, 59, 59, 0.20);
+
+            transition: 0.25s;
+        }
+
+        .filter button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(255, 59, 59, 0.30);
+        }
+
+
+        /* TABLE */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 30px;
+
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+
+        table {
+            width: 100%;
+            min-width: 750px;
+
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 16px 14px;
+
+            text-align: center;
+
+            background: #151515;
+            color: #aaa;
+
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            border-bottom: 1px solid #333;
+        }
+
+        td {
+            padding: 17px 14px;
+            text-align: center;
+
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+
+            color: #ddd;
+        }
+
+        tbody tr {
+            transition: 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255,59,59,0.05);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+
+        /* PRESENT */
+
+        td:nth-child(4) {
+            color: #55e68a;
+            font-weight: bold;
+        }
+
+
+        /* ABSENT */
+
+        td:nth-child(5) {
+            color: #ff6464;
+            font-weight: bold;
+        }
+
+
+        /* TOTAL */
+
+        td:nth-child(6) {
+            color: #fff;
+            font-weight: bold;
+        }
+
+
+        /* PERCENTAGE */
+
+        td:nth-child(7) {
+            color: #ff6262;
+            font-weight: bold;
+        }
+
+
+        /* EMPTY */
+
+        .empty {
+            padding: 35px;
+            color: #777;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 20px 12px;
+            }
+
+            .container {
+                padding: 22px 15px;
+                border-radius: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            h1 {
+                font-size: 25px;
+            }
+
+            .filter {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div>
+
+            <div class="brand">
+                Smart<span>Attendance</span>
+            </div>
+
+            <p class="subtitle">
+                Student Attendance Management System
+            </p>
+
+        </div>
+
+        <a href="/dashboard" class="back-btn">
+            ← Dashboard
+        </a>
+
+    </div>
+
+
+    <!-- TITLE -->
+
+    <h1>
+        📊 Monthly Attendance
+    </h1>
+
+    <p class="subtitle">
+        Check attendance records for the selected month.
+    </p>
+
+
+    <!-- FILTER -->
+
+    <div class="filter">
+
+        <form method="GET">
+
+            <label>
+                Select Month
+            </label>
+
+            <input
+                type="month"
+                name="month"
+                value="{{ month }}"
+                required
+            >
+
+            <button type="submit">
+                View Record
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Roll No.</th>
+
+                    <th>Student Name</th>
+
+                    <th>Class</th>
+
+                    <th>Present</th>
+
+                    <th>Absent</th>
+
+                    <th>Total</th>
+
+                    <th>Percentage</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for student in records %}
+
+                <tr>
+
+                    <td>
+                        {{ student.roll_number }}
+                    </td>
+
+                    <td>
+                        {{ student.name }}
+                    </td>
+
+                    <td>
+                        {{ student.class_name }}
+                    </td>
+
+                    <td>
+                        {{ student.present }}
+                    </td>
+
+                    <td>
+                        {{ student.absent }}
+                    </td>
+
+                    <td>
+                        {{ student.total }}
+                    </td>
+
+                    <td>
+                        {{ student.percentage }}%
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="7" class="empty">
+                        Is month ka koi attendance record nahi mila.
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+</div>
+
+</body>
+
+</html>
