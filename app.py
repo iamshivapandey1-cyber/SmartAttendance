@@ -257,11 +257,9 @@ def mark_attendance():
 
         return "Attendance successfully marked!"
 
-    except Exception as e:
-
-        print("ATTENDANCE ERROR:", e)
-
-        return "Attendance mark nahi ho saki."
+    except Exception as error:
+    print("ATTENDANCE ERROR:", repr(error))
+    return f"Attendance error: {error}"
 
 
 # ================= MONTHLY RECORD =================
