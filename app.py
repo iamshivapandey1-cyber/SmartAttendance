@@ -216,14 +216,13 @@ def scan_attendance(token):
 
     except Exception as error:
         print("ATTENDANCE ERROR:", repr(error))
-        return "Unable to mark attendance. Please try again."
+        return f"Attendance error: {error}"
 
-    
+
 @app.route("/mark-attendance", methods=["POST"])
 def mark_attendance():
 
     if "student_id" not in session:
-
         return redirect(url_for("login"))
 
     student_id = session["student_id"]
@@ -234,7 +233,6 @@ def mark_attendance():
     time = now.strftime("%H:%M:%S")
 
     try:
-
         existing = (
             supabase
             .table("attendance")
@@ -245,8 +243,7 @@ def mark_attendance():
         )
 
         if existing.data:
-
-            return "Aaj ki attendance already marked hai!"
+            return "Today's attendance has already been marked."
 
         supabase.table("attendance").insert({
             "student_id": student_id,
@@ -255,13 +252,11 @@ def mark_attendance():
             "status": "Present"
         }).execute()
 
-        return "Attendance successfully marked!"
+        return "Attendance marked successfully."
 
     except Exception as error:
-    print("ATTENDANCE ERROR:", repr(error))
-    return f"Attendance error: {error}"
-
-
+        print("ATTENDANCE ERROR:", repr(error))
+        return f"Attendance error: {error}"
 # ================= MONTHLY RECORD =================
 
 @app.route("/monthly-record")
