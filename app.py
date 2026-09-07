@@ -280,6 +280,9 @@ def logout():
 
 # ---------------- START APP ----------------
 
+# App start hote hi database/tables create ho jayengi
+create_table()
+
+
 if __name__ == "__main__":
-    create_table()
     app.run(debug=True)
