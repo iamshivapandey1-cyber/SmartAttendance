@@ -1,64 +1,42 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-import sqlite3
-import secrets
+from supabase import create_client
+from dotenv import load_dotenv
+from datetime import datetime
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 
-# Session ke liye secret key
-app.secret_key = "smart-attendance-secret-key"
+# Session security
+app.secret_key = "smart-attendance-student-key"
 
 
-# Database connection
-def get_db():
-    conn = sqlite3.connect("attendance.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+# ================= SUPABASE =================
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError(
+        "SUPABASE_URL ya SUPABASE_KEY .env me missing hai!"
+    )
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
 
 
-# Database/table create karna
-def create_table():
+# ================= HOME =================
 
-    conn = get_db()
-    cursor = conn.cursor()
-
-    # Students table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS students (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            father_name TEXT NOT NULL,
-            class_name TEXT NOT NULL,
-            roll_number TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            contact TEXT NOT NULL,
-            password TEXT NOT NULL
-        )
-    """)
-
-    # Attendance table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id INTEGER NOT NULL,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            status TEXT NOT NULL,
-            UNIQUE(student_id, date),
-            FOREIGN KEY(student_id) REFERENCES students(id)
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-
-# Home page
 @app.route("/")
 def home():
+
     return render_template("index.html")
 
 
-# ---------------- REGISTER ----------------
+# ================= REGISTER =================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -73,37 +51,30 @@ def register():
         contact = request.form["contact"]
         password = request.form["password"]
 
-        conn = get_db()
-
         try:
-            conn.execute("""
-                INSERT INTO students
-                (name, father_name, class_name, roll_number, email, contact, password)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
-                name,
-                father_name,
-                class_name,
-                roll_number,
-                email,
-                contact,
-                password
-            ))
 
-            conn.commit()
+            supabase.table("students").insert({
+                "name": name,
+                "father_name": father_name,
+                "class_name": class_name,
+                "roll_number": roll_number,
+                "email": email,
+                "contact": contact,
+                "password": password
+            }).execute()
 
-        except sqlite3.IntegrityError:
-            conn.close()
-            return "Ye email already registered hai!"
+            return redirect(url_for("login"))
 
-        conn.close()
+        except Exception as e:
 
-        return redirect(url_for("login"))
+            print("REGISTER ERROR:", e)
+
+            return "Registration failed. Email already registered ho sakta hai."
 
     return render_template("register.html")
 
 
-# ---------------- LOGIN ----------------
+# ================= LOGIN =================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -113,141 +84,267 @@ def login():
         email = request.form["email"]
         password = request.form["password"]
 
-        conn = get_db()
+        try:
 
-        student = conn.execute("""
-            SELECT * FROM students
-            WHERE email = ? AND password = ?
-        """, (email, password)).fetchone()
+            result = (
+                supabase
+                .table("students")
+                .select("*")
+                .eq("email", email)
+                .eq("password", password)
+                .execute()
+            )
 
-        conn.close()
+            students = result.data
 
-        # Agar student mil gaya
-        if student:
+            if students:
 
-            # Student ki information session mein save
-            session["student_id"] = student["id"]
-            session["student_name"] = student["name"]
+                student = students[0]
 
-            # Dashboard par bhejo
-            return redirect(url_for("dashboard"))
+                session["student_id"] = student["id"]
+                session["student_name"] = student["name"]
 
-        # Agar email/password galat hai
-        return "Email ya password galat hai!"
+                return redirect(url_for("dashboard"))
+
+            return "Email ya password galat hai!"
+
+        except Exception as e:
+
+            print("LOGIN ERROR:", e)
+
+            return "Database connection error."
+
 
     return render_template("login.html")
 
 
-# ---------------- DASHBOARD ----------------
+# ================= STUDENT DASHBOARD =================
 
 @app.route("/dashboard")
 def dashboard():
 
-    # Login nahi hai to login page par bhejo
     if "student_id" not in session:
+
         return redirect(url_for("login"))
 
-    # Database se student ki complete information nikalna
-    conn = get_db()
+    try:
 
-    student = conn.execute("""
-        SELECT * FROM students
-        WHERE id = ?
-    """, (session["student_id"],)).fetchone()
+        result = (
+            supabase
+            .table("students")
+            .select("*")
+            .eq("id", session["student_id"])
+            .execute()
+        )
 
-    conn.close()
+        students = result.data
 
-    return render_template(
-        "dashboard.html",
-        student=student
-    )
+        if not students:
 
-# ---------------- MARK ATTENDANCE ----------------
+            session.clear()
+
+            return redirect(url_for("login"))
+
+        student = students[0]
+
+        return render_template(
+            "dashboard.html",
+            student=student
+        )
+
+    except Exception as e:
+
+        print("DASHBOARD ERROR:", e)
+
+        return "Database connection error."
 
 
+# ================= MARK ATTENDANCE =================
+
+
+@app.route("/attendance/<token>")
+def scan_attendance(token):
+
+    if not session.get("student_id"):
+        return redirect(url_for("login"))
+
+    try:
+        # Check whether this QR session is valid
+        result = (
+            supabase
+            .table("attendance_sessions")
+            .select("id,date,active")
+            .eq("token", token)
+            .eq("active", True)
+            .execute()
+        )
+
+        if not result.data:
+            return "This attendance QR code is invalid or expired."
+
+        qr_session = result.data[0]
+
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        if qr_session["date"] != today:
+            return "This attendance QR code has expired."
+
+        student_id = session.get("student_id")
+
+        # Check if attendance is already marked today
+        existing = (
+            supabase
+            .table("attendance")
+            .select("id")
+            .eq("student_id", student_id)
+            .eq("date", today)
+            .execute()
+        )
+
+        if existing.data:
+            return "Attendance has already been marked for today."
+
+        # Mark attendance
+        supabase.table("attendance").insert({
+            "student_id": student_id,
+            "date": today,
+            "time": datetime.now().strftime("%H:%M:%S"),
+            "status": "Present"
+        }).execute()
+
+        return "Attendance marked successfully."
+
+    except Exception as error:
+        print("ATTENDANCE ERROR:", repr(error))
+        return "Unable to mark attendance. Please try again."
+
+    
 @app.route("/mark-attendance", methods=["POST"])
 def mark_attendance():
+
     if "student_id" not in session:
+
         return redirect(url_for("login"))
 
-    from datetime import datetime
-
     student_id = session["student_id"]
+
     now = datetime.now()
 
     date = now.strftime("%Y-%m-%d")
     time = now.strftime("%H:%M:%S")
 
-    conn = get_db()
-
     try:
-        conn.execute("""
-            INSERT INTO attendance
-            (student_id, date, time, status)
-            VALUES (?, ?, ?, ?)
-        """, (student_id, date, time, "Present"))
 
-        conn.commit()
-        message = "Attendance successfully marked!"
+        existing = (
+            supabase
+            .table("attendance")
+            .select("*")
+            .eq("student_id", student_id)
+            .eq("date", date)
+            .execute()
+        )
 
-    except sqlite3.IntegrityError:
-        message = "Aaj ki attendance already marked hai!"
+        if existing.data:
 
-    conn.close()
+            return "Aaj ki attendance already marked hai!"
 
-    return message
+        supabase.table("attendance").insert({
+            "student_id": student_id,
+            "date": date,
+            "time": time,
+            "status": "Present"
+        }).execute()
 
-# ---------------- MONTHLY ATTENDANCE ----------------
+        return "Attendance successfully marked!"
+
+    except Exception as e:
+
+        print("ATTENDANCE ERROR:", e)
+
+        return "Attendance mark nahi ho saki."
+
+
+# ================= MONTHLY RECORD =================
 
 @app.route("/monthly-record")
 def monthly_record():
 
     if "student_id" not in session:
-        return redirect(url_for("login"))
 
-    from datetime import datetime
+        return redirect(url_for("login"))
 
     month = request.args.get("month")
 
     if not month:
+
         month = datetime.now().strftime("%Y-%m")
 
-    conn = get_db()
+    student_id = session["student_id"]
 
-    students = conn.execute("""
-        SELECT id, name, father_name, class_name, roll_number
-        FROM students
-        ORDER BY roll_number
-    """).fetchall()
+    try:
 
-    records = []
+        student_result = (
+            supabase
+            .table("students")
+            .select(
+                "id,name,father_name,class_name,roll_number"
+            )
+            .eq("id", student_id)
+            .execute()
+        )
 
-    for student in students:
+        students = student_result.data
 
-        present = conn.execute("""
-            SELECT COUNT(*)
-            FROM attendance
-            WHERE student_id = ?
-            AND status = 'Present'
-            AND substr(date, 1, 7) = ?
-        """, (student["id"], month)).fetchone()[0]
+        if not students:
 
-        absent = conn.execute("""
-            SELECT COUNT(*)
-            FROM attendance
-            WHERE student_id = ?
-            AND status = 'Absent'
-            AND substr(date, 1, 7) = ?
-        """, (student["id"], month)).fetchone()[0]
+            return "Student not found."
+
+        student = students[0]
+
+
+        attendance_result = (
+            supabase
+            .table("attendance")
+            .select("*")
+            .eq("student_id", student_id)
+            .execute()
+        )
+
+        attendance_records = attendance_result.data
+
+
+        present = 0
+        absent = 0
+
+
+        for record in attendance_records:
+
+            record_date = str(record["date"])
+
+            if record_date.startswith(month):
+
+                if record["status"] == "Present":
+
+                    present += 1
+
+                elif record["status"] == "Absent":
+
+                    absent += 1
+
 
         total = present + absent
 
         percentage = 0
 
         if total > 0:
-            percentage = round((present / total) * 100, 2)
 
-        records.append({
+            percentage = round(
+                (present / total) * 100,
+                2
+            )
+
+
+        records = [{
             "id": student["id"],
             "name": student["name"],
             "father_name": student["father_name"],
@@ -257,32 +354,34 @@ def monthly_record():
             "absent": absent,
             "total": total,
             "percentage": percentage
-        })
+        }]
 
-    conn.close()
 
-    return render_template(
-        "monthly_record.html",
-        records=records,
-        month=month
-    )
-# ---------------- LOGOUT ----------------
+        return render_template(
+            "monthly_record.html",
+            records=records,
+            month=month
+        )
+
+    except Exception as e:
+
+        print("MONTHLY RECORD ERROR:", e)
+
+        return "Monthly record load nahi ho saka."
+
+
+# ================= LOGOUT =================
 
 @app.route("/logout")
 def logout():
 
-    # Session delete
     session.clear()
 
-    # Login page par wapas
     return redirect(url_for("login"))
 
 
-# ---------------- START APP ----------------
-
-# App start hote hi database/tables create ho jayengi
-create_table()
-
+# ================= RUN APP =================
 
 if __name__ == "__main__":
+
     app.run(debug=True)
