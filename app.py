@@ -216,7 +216,7 @@ def scan_attendance(token):
 
     except Exception as error:
         print("ATTENDANCE ERROR:", repr(error))
-        return f"Attendance error: {error}"
+        return "Unable to mark attendance. Please try again."
 
 
 @app.route("/mark-attendance", methods=["POST"])
@@ -256,7 +256,7 @@ def mark_attendance():
 
     except Exception as error:
         print("ATTENDANCE ERROR:", repr(error))
-        return f"Attendance error: {error}"
+        return "Unable to mark attendance. Please try again."
 # ================= MONTHLY RECORD =================
 
 @app.route("/monthly-record")
