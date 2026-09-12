@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,68 +5,709 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Student Login</title>
+    <title>Student Login | SmartAttendance</title>
 
-    <!-- Premium CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(59, 130, 246, 0.16),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    rgba(99, 102, 241, 0.12),
+                    transparent 35%
+                ),
+                #080c14;
+
+            color: #ffffff;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .card {
+            position: relative;
+
+            background: rgba(17, 24, 39, 0.92);
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 26px;
+
+            padding: 42px 34px 34px;
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+            backdrop-filter: blur(18px);
+
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 170px;
+            height: 170px;
+
+            top: -85px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            background: rgba(59, 130, 246, 0.16);
+
+            filter: blur(70px);
+
+            pointer-events: none;
+        }
+
+        /* ================= LOGO ================= */
+
+        .logo {
+            width: 76px;
+            height: 76px;
+
+            margin: 0 auto 22px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5
+                );
+
+            font-size: 25px;
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            box-shadow:
+                0 15px 35px rgba(37, 99, 235, 0.28),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2);
+
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ================= HEADING ================= */
+
+        h1 {
+            text-align: center;
+
+            font-size: 32px;
+
+            letter-spacing: -0.8px;
+
+            margin-bottom: 9px;
+        }
+
+        .form-subtitle {
+            text-align: center;
+
+            color: #8f9aaa;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            margin-bottom: 30px;
+        }
+
+        /* ================= FORM ================= */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #d6dae2;
+
+            font-size: 13px;
+
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-icon {
+            position: absolute;
+
+            left: 15px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            width: 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #7d8798;
+
+            font-size: 15px;
+
+            pointer-events: none;
+
+            transition: color 0.2s ease;
+        }
+
+        input {
+            width: 100%;
+            height: 52px;
+
+            padding: 0 15px 0 45px;
+
+            border-radius: 13px;
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            outline: none;
+
+            background: rgba(255, 255, 255, 0.045);
+
+            color: #ffffff;
+
+            font-size: 14px;
+
+            transition:
+                border 0.2s ease,
+                background 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        input::placeholder {
+            color: #687385;
+        }
+
+        input:focus {
+            border-color: rgba(59, 130, 246, 0.65);
+
+            background: rgba(255, 255, 255, 0.06);
+
+            box-shadow:
+                0 0 0 3px rgba(59, 130, 246, 0.10);
+        }
+
+        .input-wrapper:focus-within .input-icon {
+            color: #60a5fa;
+        }
+
+        /* ================= PASSWORD ================= */
+
+        .password-input {
+            padding-right: 48px;
+        }
+
+        .password-toggle {
+            position: absolute;
+
+            right: 13px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            width: 32px;
+            height: 32px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: none;
+
+            background: transparent;
+
+            color: #7d8798;
+
+            cursor: pointer;
+
+            border-radius: 8px;
+
+            font-size: 16px;
+
+            transition:
+                color 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: #ffffff;
+
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* ================= LOGIN BUTTON ================= */
+
+        .full-btn {
+            width: 100%;
+            height: 54px;
+
+            margin-top: 8px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5
+                );
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 12px 28px rgba(37, 99, 235, 0.24);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        .full-btn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 16px 35px rgba(37, 99, 235, 0.34);
+        }
+
+        .full-btn:active {
+            transform: translateY(0);
+        }
+
+        .full-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+        }
+
+        /* ================= ACCOUNT INFO ================= */
+
+        .account-info {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-top: 24px;
+
+            padding: 14px 15px;
+
+            border-radius: 13px;
+
+            background: rgba(255, 255, 255, 0.035);
+
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .info-icon {
+            width: 36px;
+            height: 36px;
+
+            flex-shrink: 0;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: rgba(59, 130, 246, 0.10);
+
+            font-size: 16px;
+        }
+
+        .account-info p {
+            color: #8993a3;
+
+            font-size: 11px;
+
+            line-height: 1.55;
+        }
+
+        .account-info strong {
+            color: #cbd5e1;
+
+            font-weight: 600;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .bottom-text {
+            margin-top: 24px;
+
+            padding-top: 20px;
+
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+            text-align: center;
+
+            color: #596474;
+
+            font-size: 11px;
+
+            line-height: 1.6;
+        }
+
+        .back-home {
+            display: inline-block;
+
+            margin-top: 8px;
+
+            color: #7aa7ff;
+
+            text-decoration: none;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            transition: color 0.2s ease;
+        }
+
+        .back-home:hover {
+            color: #a8c4ff;
+
+            text-decoration: underline;
+        }
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 480px) {
+
+            body {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 35px 22px 28px;
+
+                border-radius: 22px;
+            }
+
+            .logo {
+                width: 68px;
+                height: 68px;
+
+                border-radius: 19px;
+
+                font-size: 22px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .form-subtitle {
+                font-size: 13px;
+            }
+
+            input {
+                height: 50px;
+            }
+
+            .full-btn {
+                height: 52px;
+            }
+        }
+
+        @media (max-height: 650px) {
+
+            .card {
+                padding-top: 28px;
+                padding-bottom: 24px;
+            }
+
+            .logo {
+                margin-bottom: 15px;
+            }
+
+            .form-subtitle {
+                margin-bottom: 22px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
 </head>
+
 
 <body>
 
     <div class="container">
 
-        <div class="card form-container">
+        <div class="card">
+
+            <!-- Logo -->
 
             <div class="logo">
                 SA
             </div>
 
-            <h1>Student Login</h1>
+
+            <!-- Heading -->
+
+            <h1>
+                Student Login
+            </h1>
 
             <p class="form-subtitle">
-                Login to your student account
+                Sign in to access your SmartAttendance account.
             </p>
 
-            <form action="/login" method="POST">
+
+            <!-- Login Form -->
+
+            <form
+                action="{{ url_for('login') }}"
+                method="POST"
+                id="loginForm"
+            >
+
+                <!-- Email -->
 
                 <div class="form-group">
-                    <label>Email</label>
 
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Enter your email"
-                        required
-                    >
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            
+                        </span>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your registered email"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
                 </div>
 
-                <div class="form-group" style="margin-top: 20px;">
-                    <label>Password</label>
 
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Enter your password"
-                        required
-                    >
+                <!-- Password -->
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            
+                        </span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="password-input"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="passwordToggle"
+                            aria-label="Show password"
+                            title="Show password"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
                 </div>
 
-                <button type="submit" class="btn btn-primary full-btn">
-                    Login
+
+                <!-- Login -->
+
+                <button
+                    type="submit"
+                    class="btn btn-primary full-btn"
+                    id="loginButton"
+                >
+                    Login to Student Portal →
                 </button>
 
             </form>
 
-            <p class="bottom-text">
-                Don't have an account?
-                <a href="/register">Create Account</a>
-            </p>
+
+            <!-- Account Information -->
+
+            <div class="account-info">
+
+                <div class="info-icon">
+                    🔐
+                </div>
+
+                <p>
+                    <strong>Student account?</strong><br>
+                    Your account is created by your teacher.
+                    If you do not have an account, contact your teacher.
+                </p>
+
+            </div>
+
+
+            <!-- Footer -->
+
+            <div class="bottom-text">
+
+                SmartAttendance Student Portal
+
+                <br>
+
+                <a
+                    href="{{ url_for('home') }}"
+                    class="back-home"
+                >
+                    ← Back to Home
+                </a>
+
+            </div>
 
         </div>
 
     </div>
 
+
+    <!-- ================= JAVASCRIPT ================= -->
+
+    <script>
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const passwordToggle =
+            document.getElementById("passwordToggle");
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+        const loginButton =
+            document.getElementById("loginButton");
+
+
+        /* Show / Hide Password */
+
+        passwordToggle.addEventListener("click", function () {
+
+            if (passwordInput.type === "password") {
+
+                passwordInput.type = "text";
+
+                passwordToggle.textContent = "🙈";
+
+                passwordToggle.setAttribute(
+                    "aria-label",
+                    "Hide password"
+                );
+
+                passwordToggle.setAttribute(
+                    "title",
+                    "Hide password"
+                );
+
+            } else {
+
+                passwordInput.type = "password";
+
+                passwordToggle.textContent = "👁";
+
+                passwordToggle.setAttribute(
+                    "aria-label",
+                    "Show password"
+                );
+
+                passwordToggle.setAttribute(
+                    "title",
+                    "Show password"
+                );
+
+            }
+
+            passwordInput.focus();
+
+        });
+
+
+        /* Login Button Loading State */
+
+        loginForm.addEventListener("submit", function () {
+
+            loginButton.disabled = true;
+
+            loginButton.textContent = "Signing in...";
+
+        });
+
+    </script>
+
 </body>
 
 </html>
-
