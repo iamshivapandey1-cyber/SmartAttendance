@@ -35,43 +35,139 @@ def home():
 
     return render_template("index.html")
 
+# ================= STUDENT PROFILE =================
 
-# ================= REGISTER =================
+@app.route("/profile")
+def profile():
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
+    if "student_id" not in session:
+        return redirect(url_for("login"))
+
+    student_id = session["student_id"]
+
+    try:
+
+        result = (
+            supabase
+            .table("students")
+            .select(
+                "id,name,father_name,class_name,"
+                "roll_number,email,contact,profile_picture"
+            )
+            .eq("id", student_id)
+            .execute()
+        )
+
+        students = result.data
+
+        if not students:
+            session.clear()
+            return redirect(url_for("login"))
+
+        student = students[0]
+
+        return render_template(
+            "profile.html",
+            student=student
+        )
+
+    except Exception as error:
+
+        print("PROFILE ERROR:", repr(error))
+
+        return "Unable to load your profile."
+
+
+# ================= CHANGE PASSWORD =================
+
+@app.route("/change-password", methods=["GET", "POST"])
+def change_password():
+
+    if "student_id" not in session:
+        return redirect(url_for("login"))
+
+    student_id = session["student_id"]
 
     if request.method == "POST":
 
-        name = request.form["name"]
-        father_name = request.form["father_name"]
-        class_name = request.form["class_name"]
-        roll_number = request.form["roll_number"]
-        email = request.form["email"]
-        contact = request.form["contact"]
-        password = request.form["password"]
+        current_password = request.form.get(
+            "current_password", ""
+        )
+
+        new_password = request.form.get(
+            "new_password", ""
+        )
+
+        confirm_password = request.form.get(
+            "confirm_password", ""
+        )
+
+        if not current_password or not new_password or not confirm_password:
+            return render_template(
+                "change_password.html",
+                error="All fields are required."
+            )
+
+        if new_password != confirm_password:
+            return render_template(
+                "change_password.html",
+                error="New passwords do not match."
+            )
+
+        if len(new_password) < 6:
+            return render_template(
+                "change_password.html",
+                error="Password must be at least 6 characters long."
+            )
 
         try:
 
-            supabase.table("students").insert({
-                "name": name,
-                "father_name": father_name,
-                "class_name": class_name,
-                "roll_number": roll_number,
-                "email": email,
-                "contact": contact,
-                "password": password
-            }).execute()
+            # Get current student
+            result = (
+                supabase
+                .table("students")
+                .select("id,password")
+                .eq("id", student_id)
+                .execute()
+            )
 
-            return redirect(url_for("login"))
+            students = result.data
 
-        except Exception as e:
+            if not students:
+                session.clear()
+                return redirect(url_for("login"))
 
-            print("REGISTER ERROR:", e)
+            student = students[0]
 
-            return "Registration failed. Email already registered ho sakta hai."
+            # Verify current password
+            if student["password"] != current_password:
+                return render_template(
+                    "change_password.html",
+                    error="Current password is incorrect."
+                )
 
-    return render_template("register.html")
+            # Update password
+            supabase.table("students").update({
+                "password": new_password
+            }).eq(
+                "id", student_id
+            ).execute()
+
+            return render_template(
+                "change_password.html",
+                success="Password changed successfully."
+            )
+
+        except Exception as error:
+
+            print("CHANGE PASSWORD ERROR:", repr(error))
+
+            return render_template(
+                "change_password.html",
+                error="Unable to change password. Please try again."
+            )
+
+    return render_template("change_password.html")
 
 
 # ================= LOGIN =================
@@ -161,6 +257,7 @@ def dashboard():
 
 # ================= MARK ATTENDANCE =================
 
+# ================= QR ATTENDANCE =================
 
 @app.route("/attendance/<token>")
 def scan_attendance(token):
@@ -169,11 +266,12 @@ def scan_attendance(token):
         return redirect(url_for("login"))
 
     try:
-        # Check whether this QR session is valid
+
+        # Find the QR session
         result = (
             supabase
             .table("attendance_sessions")
-            .select("id,date,active")
+            .select("id,date,active,created_at")
             .eq("token", token)
             .eq("active", True)
             .execute()
@@ -184,9 +282,29 @@ def scan_attendance(token):
 
         qr_session = result.data[0]
 
-        today = datetime.now().strftime("%Y-%m-%d")
+        # Today's date
+        now = datetime.now()
+        today = now.strftime("%Y-%m-%d")
 
+        # QR must be generated today
         if qr_session["date"] != today:
+            return "This attendance QR code has expired."
+
+        # Check QR age (5 minutes)
+        created_at = qr_session["created_at"]
+
+        # Convert Supabase timestamp to datetime
+        created_at = datetime.fromisoformat(
+            created_at.replace("Z", "+00:00")
+        )
+
+        # Make current time timezone-aware
+        current_time = datetime.now(created_at.tzinfo)
+
+        # QR age in seconds
+        qr_age = (current_time - created_at).total_seconds()
+
+        if qr_age > 300:
             return "This attendance QR code has expired."
 
         student_id = session.get("student_id")
@@ -215,48 +333,19 @@ def scan_attendance(token):
         return "Attendance marked successfully."
 
     except Exception as error:
+
         print("ATTENDANCE ERROR:", repr(error))
+
         return "Unable to mark attendance. Please try again."
 
+
+# ================= MANUAL ATTENDANCE DISABLED =================
 
 @app.route("/mark-attendance", methods=["POST"])
 def mark_attendance():
 
-    if "student_id" not in session:
-        return redirect(url_for("login"))
+    return "Attendance can only be marked by scanning a valid QR code."
 
-    student_id = session["student_id"]
-
-    now = datetime.now()
-
-    date = now.strftime("%Y-%m-%d")
-    time = now.strftime("%H:%M:%S")
-
-    try:
-        existing = (
-            supabase
-            .table("attendance")
-            .select("*")
-            .eq("student_id", student_id)
-            .eq("date", date)
-            .execute()
-        )
-
-        if existing.data:
-            return "Today's attendance has already been marked."
-
-        supabase.table("attendance").insert({
-            "student_id": student_id,
-            "date": date,
-            "time": time,
-            "status": "Present"
-        }).execute()
-
-        return "Attendance marked successfully."
-
-    except Exception as error:
-        print("ATTENDANCE ERROR:", repr(error))
-        return "Unable to mark attendance. Please try again."
 # ================= MONTHLY RECORD =================
 
 @app.route("/monthly-record")
