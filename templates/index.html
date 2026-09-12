@@ -5,38 +5,352 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Smart Attendance System</title>
+    <title>SmartAttendance | Student Portal</title>
 
-    <!-- CSS -->
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.12), transparent 35%),
+                #080c14;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .card {
+            position: relative;
+            background: rgba(17, 24, 39, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            padding: 48px 38px 40px;
+            text-align: center;
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(18px);
+        }
+
+        /* Top glow */
+        .card::before {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            top: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(59, 130, 246, 0.18);
+            filter: blur(70px);
+            pointer-events: none;
+        }
+
+        .logo {
+            width: 82px;
+            height: 82px;
+            margin: 0 auto 25px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 24px;
+
+            background: linear-gradient(
+                135deg,
+                #2563eb,
+                #4f46e5
+            );
+
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: 1px;
+
+            box-shadow:
+                0 15px 35px rgba(37, 99, 235, 0.28),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 7px 13px;
+            margin-bottom: 18px;
+
+            border-radius: 50px;
+
+            background: rgba(59, 130, 246, 0.09);
+            border: 1px solid rgba(59, 130, 246, 0.18);
+
+            color: #93c5fd;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #60a5fa;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+        }
+
+        h1 {
+            font-size: clamp(30px, 7vw, 40px);
+            line-height: 1.12;
+            letter-spacing: -1px;
+            margin-bottom: 15px;
+        }
+
+        h1 span {
+            color: #60a5fa;
+        }
+
+        .subtitle {
+            max-width: 390px;
+            margin: 0 auto;
+
+            color: #9ca3af;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .login-info {
+            margin: 28px 0 22px;
+            padding: 16px 18px;
+
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            text-align: left;
+
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 15px;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: rgba(59, 130, 246, 0.12);
+            font-size: 18px;
+        }
+
+        .login-info strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 3px;
+            color: #e5e7eb;
+        }
+
+        .login-info p {
+            color: #8b95a7;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .buttons {
+            margin-top: 24px;
+        }
+
+        .btn {
+            width: 100%;
+            min-height: 54px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            text-decoration: none;
+            border-radius: 14px;
+
+            font-size: 15px;
+            font-weight: 700;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .btn-primary {
+            color: white;
+
+            background: linear-gradient(
+                135deg,
+                #2563eb,
+                #4f46e5
+            );
+
+            box-shadow:
+                0 12px 28px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 16px 34px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .arrow {
+            font-size: 19px;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-primary:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        .footer {
+            margin-top: 28px;
+            padding-top: 22px;
+
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+            color: #667085;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .footer strong {
+            color: #8b95a7;
+        }
+
+        @media (max-width: 520px) {
+
+            body {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 38px 23px 30px;
+                border-radius: 23px;
+            }
+
+            .logo {
+                width: 72px;
+                height: 72px;
+                border-radius: 20px;
+                font-size: 23px;
+            }
+
+            h1 {
+                font-size: 31px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
     <div class="container">
 
-        <div class="card home">
+        <div class="card">
 
+            <!-- Logo -->
             <div class="logo">
                 SA
             </div>
 
-            <h1>Smart Attendance System</h1>
+            <!-- Badge -->
+            <div class="badge">
+                <span class="status-dot"></span>
+                Student Portal
+            </div>
+
+            <!-- Heading -->
+            <h1>
+                Smart<span>Attendance</span>
+            </h1>
 
             <p class="subtitle">
-                A simple and secure way to manage
-                student attendance.
+                A simple and secure way to view your attendance,
+                scan classroom QR codes, and manage your student account.
             </p>
 
+            <!-- Information -->
+            <div class="login-info">
+
+                <div class="info-icon">
+                    🔐
+                </div>
+
+                <div>
+                    <strong>Student account required</strong>
+
+                    <p>
+                        Your account is created by your teacher.
+                        Use your registered email and password to continue.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Login -->
             <div class="buttons">
 
-                <a href="/register" class="btn btn-primary">
-                    Create Account
+                <a href="{{ url_for('login') }}"
+                   class="btn btn-primary">
+
+                    <span>Login to Student Portal</span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
                 </a>
 
-                <a href="/login" class="btn btn-secondary">
-                    Login
-                </a>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+
+                <strong>SmartAttendance</strong>
+                <br>
+
+                Attendance management system for students and teachers.
 
             </div>
 
