@@ -6,142 +6,670 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Student Dashboard</title>
+    <title>Student Dashboard | SmartAttendance</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
 
-    <!-- QR Scanner Library -->
+    <!-- QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode"
             type="text/javascript"></script>
 
     <style>
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             min-height: 100vh;
-            padding: 40px 20px;
+
+            padding: 28px 18px;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 5% 0%,
+                    rgba(59, 130, 246, 0.14),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 95% 100%,
+                    rgba(99, 102, 241, 0.10),
+                    transparent 30%
+                ),
+                #080c14;
+
+            color: #ffffff;
         }
 
         .dashboard {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1050px;
             margin: auto;
         }
+
+
+        /* ================= TOP BAR ================= */
 
         .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+
             margin-bottom: 25px;
         }
 
         .brand {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 22px;
+            font-weight: 800;
+
+            letter-spacing: -0.5px;
         }
 
         .brand span {
-            color: #ff3b3b;
+            color: #60a5fa;
         }
 
-        .logout-btn {
+        .top-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 10px 15px;
+
+            border-radius: 11px;
+
             text-decoration: none;
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: 1px solid #444;
-            color: white;
+
+            color: #cbd5e1;
+
+            background: rgba(255,255,255,0.045);
+
+            border: 1px solid rgba(255,255,255,0.07);
+
+            font-size: 12px;
+            font-weight: 600;
+
+            transition: 0.2s ease;
         }
 
-        .welcome-card,
-        .profile-card,
-        .attendance-card {
+        .top-btn:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-1px);
+        }
+
+        .logout {
+            color: #fca5a5;
+        }
+
+
+        /* ================= WELCOME ================= */
+
+        .welcome-card {
+            position: relative;
+
+            overflow: hidden;
+
             padding: 30px;
-            margin-bottom: 25px;
+
+            margin-bottom: 20px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(30, 64, 175, 0.30),
+                    rgba(17, 24, 39, 0.90)
+                );
+
+            border: 1px solid rgba(96,165,250,0.13);
+
+            box-shadow:
+                0 25px 60px rgba(0,0,0,0.28);
         }
 
-        .welcome-card p,
-        .attendance-card p {
-            color: #aaa;
+        .welcome-card::after {
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+            height: 220px;
+
+            right: -90px;
+            top: -100px;
+
+            background: rgba(59,130,246,0.14);
+
+            filter: blur(65px);
         }
 
-        .profile-title {
-            margin-bottom: 25px;
+        .welcome-label {
+            display: inline-flex;
+
+            align-items: center;
+            gap: 7px;
+
+            margin-bottom: 13px;
+
+            padding: 6px 11px;
+
+            border-radius: 50px;
+
+            background: rgba(96,165,250,0.09);
+
+            border: 1px solid rgba(96,165,250,0.14);
+
+            color: #93c5fd;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.7px;
+        }
+
+        .welcome-dot {
+            width: 6px;
+            height: 6px;
+
+            border-radius: 50%;
+
+            background: #60a5fa;
+
+            box-shadow:
+                0 0 9px rgba(96,165,250,0.8);
+        }
+
+        .welcome-card h1 {
+            position: relative;
+
+            z-index: 1;
+
+            font-size: clamp(25px, 5vw, 34px);
+
+            letter-spacing: -1px;
+
+            margin-bottom: 9px;
+        }
+
+        .welcome-card p {
+            position: relative;
+
+            z-index: 1;
+
+            color: #9ca3af;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+        }
+
+
+        /* ================= MAIN GRID ================= */
+
+        .main-grid {
+            display: grid;
+
+            grid-template-columns: 1.35fr 0.65fr;
+
+            gap: 20px;
+
+            align-items: start;
+        }
+
+
+        /* ================= CARD ================= */
+
+        .card {
+            background: rgba(17,24,39,0.86);
+
+            border: 1px solid rgba(255,255,255,0.07);
+
+            border-radius: 21px;
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.24);
+
+            backdrop-filter: blur(15px);
+        }
+
+
+        /* ================= PROFILE ================= */
+
+        .profile-card {
+            padding: 25px;
+        }
+
+        .section-heading {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .section-icon {
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: rgba(59,130,246,0.10);
+
+            font-size: 16px;
+        }
+
+        .view-profile {
+            color: #7aa7ff;
+
+            text-decoration: none;
+
+            font-size: 11px;
+
+            font-weight: 600;
+        }
+
+        .view-profile:hover {
+            text-decoration: underline;
         }
 
         .profile-grid {
             display: grid;
+
             grid-template-columns: 1fr 1fr;
-            gap: 18px;
+
+            gap: 12px;
         }
 
         .profile-item {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            padding: 16px;
-            border-radius: 12px;
+            padding: 15px;
+
+            border-radius: 13px;
+
+            background: rgba(255,255,255,0.035);
+
+            border: 1px solid rgba(255,255,255,0.055);
+
+            transition: 0.2s ease;
+        }
+
+        .profile-item:hover {
+            background: rgba(255,255,255,0.055);
+
+            border-color: rgba(96,165,250,0.12);
         }
 
         .profile-item small {
             display: block;
-            color: #888;
+
             margin-bottom: 6px;
+
+            color: #687385;
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+        }
+
+        .profile-item strong {
+            display: block;
+
+            color: #e5e7eb;
+
+            font-size: 13px;
+
+            word-break: break-word;
+        }
+
+
+        /* ================= ATTENDANCE ================= */
+
+        .attendance-card {
+            padding: 25px;
+
+            margin-top: 20px;
+        }
+
+        .attendance-description {
+            color: #8f9aaa;
+
+            font-size: 12px;
+
+            line-height: 1.6;
+
+            margin-bottom: 20px;
+        }
+
+        .attendance-actions {
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+        }
+
+        .scan-btn,
+        .record-btn {
+            min-height: 48px;
+
+            padding: 0 18px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
         }
 
         .scan-btn {
-            padding: 14px 30px;
             border: none;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #ff3b3b, #ff6b6b);
+
             color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5
+                );
+
+            box-shadow:
+                0 10px 25px rgba(37,99,235,0.22);
         }
-        .attendance-actions {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    flex-wrap: wrap;
-}
 
-.record-btn {
-    display: inline-block;
-    padding: 14px 30px;
-    border: 1px solid #444;
-    border-radius: 12px;
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: bold;
-    background: rgba(255,255,255,0.05);
-}
+        .scan-btn:hover {
+            transform: translateY(-2px);
 
-.record-btn:hover {
-    background: rgba(255,255,255,0.1);
-}
+            box-shadow:
+                0 14px 30px rgba(37,99,235,0.32);
+        }
+
+        .record-btn {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            text-decoration: none;
+
+            color: #d1d5db;
+
+            background: rgba(255,255,255,0.045);
+
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .record-btn:hover {
+            background: rgba(255,255,255,0.08);
+
+            transform: translateY(-2px);
+        }
+
+
+        /* ================= SCANNER ================= */
 
         #reader {
             width: 100%;
-            max-width: 500px;
-            margin: 25px auto;
+
+            max-width: 430px;
+
+            margin: 22px auto 0;
+
             display: none;
+
+            overflow: hidden;
+
+            border-radius: 16px;
+
+            border: 1px solid rgba(255,255,255,0.08);
+
+            background: #05070b;
+        }
+
+        #reader video {
+            border-radius: 15px;
         }
 
         #scanner-message {
-            margin-top: 15px;
-            color: #aaa;
+            margin-top: 13px;
+
+            color: #8f9aaa;
+
+            font-size: 12px;
+
+            text-align: center;
         }
 
-        @media (max-width: 700px) {
+
+        /* ================= SIDE ACTIONS ================= */
+
+        .quick-card {
+            padding: 25px;
+        }
+
+        .quick-card h2 {
+            font-size: 16px;
+
+            margin-bottom: 17px;
+        }
+
+        .quick-action {
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+
+            width: 100%;
+
+            padding: 14px;
+
+            margin-bottom: 10px;
+
+            border-radius: 13px;
+
+            text-decoration: none;
+
+            color: #e5e7eb;
+
+            background: rgba(255,255,255,0.035);
+
+            border: 1px solid rgba(255,255,255,0.06);
+
+            transition: 0.2s ease;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-1px);
+
+            background: rgba(59,130,246,0.08);
+
+            border-color: rgba(59,130,246,0.20);
+        }
+
+        .quick-icon {
+            width: 38px;
+            height: 38px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background: rgba(59,130,246,0.10);
+
+            font-size: 17px;
+        }
+
+        .quick-text strong {
+            display: block;
+
+            font-size: 12px;
+
+            margin-bottom: 3px;
+        }
+
+        .quick-text span {
+            color: #687385;
+
+            font-size: 10px;
+        }
+
+
+        /* ================= ACCOUNT STATUS ================= */
+
+        .status-box {
+            margin-top: 18px;
+
+            padding: 15px;
+
+            border-radius: 13px;
+
+            background: rgba(34,197,94,0.045);
+
+            border: 1px solid rgba(34,197,94,0.10);
+        }
+
+        .status-title {
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            color: #86efac;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            margin-bottom: 5px;
+        }
+
+        .status-box p {
+            color: #687385;
+
+            font-size: 10px;
+
+            line-height: 1.5;
+        }
+
+        .online-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 8px rgba(74,222,128,0.7);
+        }
+
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            text-align: center;
+
+            color: #4f5968;
+
+            font-size: 10px;
+
+            margin-top: 25px;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 800px) {
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 18px 12px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+
+                gap: 12px;
+            }
+
+            .top-actions {
+                flex-direction: column;
+            }
+
+            .brand {
+                font-size: 19px;
+            }
+
+            .welcome-card {
+                padding: 24px 20px;
+            }
+
+            .profile-card,
+            .attendance-card,
+            .quick-card {
+                padding: 20px;
+            }
 
             .profile-grid {
                 grid-template-columns: 1fr;
             }
 
-            .topbar {
+            .attendance-actions {
                 flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
+            }
+
+            .scan-btn,
+            .record-btn {
+                width: 100%;
             }
 
         }
@@ -150,11 +678,13 @@
 
 </head>
 
+
 <body>
 
 <div class="dashboard">
 
-    <!-- TOP BAR -->
+
+    <!-- ================= TOP BAR ================= -->
 
     <div class="topbar">
 
@@ -162,159 +692,487 @@
             Smart<span>Attendance</span>
         </div>
 
-        <a href="/logout" class="logout-btn">
-            Logout
-        </a>
+        <div class="top-actions">
 
-    </div>
+            <a
+                href="{{ url_for('profile') }}"
+                class="top-btn"
+            >
+                👤 My Profile
+            </a>
 
-
-    <!-- WELCOME -->
-
-    <div class="card welcome-card">
-
-        <h1>
-            Welcome, {{ student["name"] }} 👋
-        </h1>
-
-        <p>
-            Manage your attendance and student information from here.
-        </p>
-
-    </div>
-
-
-    <!-- PROFILE -->
-
-    <div class="card profile-card">
-
-        <h2 class="profile-title">
-            👤 Student Profile
-        </h2>
-
-        <div class="profile-grid">
-
-            <div class="profile-item">
-                <small>Name</small>
-                <strong>{{ student["name"] }}</strong>
-            </div>
-
-            <div class="profile-item">
-                <small>Father Name</small>
-                <strong>{{ student["father_name"] }}</strong>
-            </div>
-
-            <div class="profile-item">
-                <small>Class / Course</small>
-                <strong>{{ student["class_name"] }}</strong>
-            </div>
-
-            <div class="profile-item">
-                <small>Roll Number</small>
-                <strong>{{ student["roll_number"] }}</strong>
-            </div>
-
-            <div class="profile-item">
-                <small>Email</small>
-                <strong>{{ student["email"] }}</strong>
-            </div>
-
-            <div class="profile-item">
-                <small>Contact</small>
-                <strong>{{ student["contact"] }}</strong>
-            </div>
+            <a
+                href="{{ url_for('logout') }}"
+                class="top-btn logout"
+            >
+                Logout
+            </a>
 
         </div>
 
     </div>
 
 
-    <!-- SCANNER -->
+    <!-- ================= WELCOME ================= -->
 
-    <div class="card attendance-card">
+    <div class="welcome-card">
 
-        <h2>📷 Mark Your Attendance</h2>
+        <div class="welcome-label">
+
+            <span class="welcome-dot"></span>
+
+            Student Portal
+
+        </div>
+
+        <h1>
+            Welcome, {{ student["name"] }} 👋
+        </h1>
 
         <p>
-            Scan today's QR code provided by your teacher.
+            Manage your attendance, view your records,
+            and access your student account from one place.
         </p>
-
-        <div class="attendance-actions">
-
-    <button class="scan-btn" onclick="startScanner()">
-        📷 Scan QR Code
-    </button>
-
-    <a href="/monthly-record" class="record-btn">
-        📊 Monthly Record
-    </a>
-
-</div>
-        <div id="reader"></div>
-
-        <p id="scanner-message"></p>
 
     </div>
 
+
+    <!-- ================= MAIN ================= -->
+
+    <div class="main-grid">
+
+
+        <!-- LEFT COLUMN -->
+
+        <div>
+
+
+            <!-- PROFILE -->
+
+            <div class="card profile-card">
+
+                <div class="section-heading">
+
+                    <div class="section-title">
+
+                        <div class="section-icon">
+                            👤
+                        </div>
+
+                        Student Information
+
+                    </div>
+
+                    <a
+                        href="{{ url_for('profile') }}"
+                        class="view-profile"
+                    >
+                        View Full Profile →
+                    </a>
+
+                </div>
+
+
+                <div class="profile-grid">
+
+
+                    <div class="profile-item">
+
+                        <small>
+                            Name
+                        </small>
+
+                        <strong>
+                            {{ student["name"] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <small>
+                            Father's Name
+                        </small>
+
+                        <strong>
+                            {{ student["father_name"] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <small>
+                            Class / Course
+                        </small>
+
+                        <strong>
+                            {{ student["class_name"] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <small>
+                            Roll Number
+                        </small>
+
+                        <strong>
+                            {{ student["roll_number"] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <small>
+                            Email
+                        </small>
+
+                        <strong>
+                            {{ student["email"] }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-item">
+
+                        <small>
+                            Contact
+                        </small>
+
+                        <strong>
+                            {{ student["contact"] }}
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- ATTENDANCE -->
+
+            <div class="card attendance-card">
+
+                <div class="section-heading">
+
+                    <div class="section-title">
+
+                        <div class="section-icon">
+                            📷
+                        </div>
+
+                        Mark Attendance
+
+                    </div>
+
+                </div>
+
+
+                <p class="attendance-description">
+
+                    Scan the temporary QR code displayed by your
+                    teacher in the classroom to mark today's attendance.
+
+                </p>
+
+
+                <div class="attendance-actions">
+
+                    <button
+                        class="scan-btn"
+                        onclick="startScanner()"
+                        id="scanButton"
+                    >
+                        📷 Scan QR Code
+                    </button>
+
+
+                    <a
+                        href="{{ url_for('monthly_record') }}"
+                        class="record-btn"
+                    >
+                        📊 Monthly Record
+                    </a>
+
+                </div>
+
+
+                <div id="reader"></div>
+
+                <p id="scanner-message"></p>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT COLUMN -->
+
+        <div class="card quick-card">
+
+            <h2>
+                Quick Access
+            </h2>
+
+
+            <a
+                href="{{ url_for('profile') }}"
+                class="quick-action"
+            >
+
+                <div class="quick-icon">
+                    👤
+                </div>
+
+                <div class="quick-text">
+
+                    <strong>
+                        My Profile
+                    </strong>
+
+                    <span>
+                        View account information
+                    </span>
+
+                </div>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('change_password') }}"
+                class="quick-action"
+            >
+
+                <div class="quick-icon">
+                    🔐
+                </div>
+
+                <div class="quick-text">
+
+                    <strong>
+                        Change Password
+                    </strong>
+
+                    <span>
+                        Update your account password
+                    </span>
+
+                </div>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('monthly_record') }}"
+                class="quick-action"
+            >
+
+                <div class="quick-icon">
+                    📊
+                </div>
+
+                <div class="quick-text">
+
+                    <strong>
+                        Monthly Attendance
+                    </strong>
+
+                    <span>
+                        View attendance percentage
+                    </span>
+
+                </div>
+
+            </a>
+
+
+            <div class="status-box">
+
+                <div class="status-title">
+
+                    <span class="online-dot"></span>
+
+                    Account Active
+
+                </div>
+
+                <p>
+                    Your SmartAttendance student account
+                    is currently active.
+                </p>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <div class="footer">
+
+        SmartAttendance · Student Portal
+
+    </div>
+
+
 </div>
 
 
+<!-- ================= QR SCRIPT ================= -->
+
 <script>
 
-    let scanner;
+    let scanner = null;
+    let scannerRunning = false;
+
 
     function startScanner() {
 
-        const reader = document.getElementById("reader");
-        const message = document.getElementById("scanner-message");
+        const reader =
+            document.getElementById("reader");
+
+        const message =
+            document.getElementById("scanner-message");
+
+        const button =
+            document.getElementById("scanButton");
+
+
+        if (scannerRunning) {
+            return;
+        }
+
 
         reader.style.display = "block";
 
-        message.innerText = "Camera start ho raha hai...";
+        message.innerText =
+            "Starting camera...";
 
-        scanner = new Html5Qrcode("reader");
+        button.disabled = true;
+
+        button.style.opacity = "0.6";
+
+
+        scanner =
+            new Html5Qrcode("reader");
+
+
+        scannerRunning = true;
+
 
         scanner.start(
-            { facingMode: "environment" },
+
+            {
+                facingMode: "environment"
+            },
 
             {
                 fps: 10,
-                qrbox: 250
+                qrbox: {
+                    width: 250,
+                    height: 250
+                }
             },
+
 
             function(decodedText) {
 
-    message.innerText = "QR Code scan ho gaya!";
+                message.innerText =
+                    "QR code detected. Verifying attendance...";
 
-    console.log("QR Code:", decodedText);
 
-    scanner.stop();
+                console.log(
+                    "Scanned QR:",
+                    decodedText
+                );
 
-    fetch("/mark-attendance", {
-        method: "POST"
-    })
-    .then(response => response.text())
-    .then(data => {
-        message.innerText = data;
-    })
-    .catch(error => {
-        message.innerText = "Attendance mark nahi ho saki.";
-        console.log(error);
-    });
 
-},
+                scanner.stop()
+                    .then(function() {
+
+                        scannerRunning = false;
+
+                        /*
+                         * The teacher QR contains the
+                         * student's attendance URL.
+                         *
+                         * Open that exact URL so the
+                         * server can validate the token.
+                         */
+
+                        if (
+                            decodedText.startsWith(
+                                window.location.origin
+                            )
+                        ) {
+
+                            window.location.href =
+                                decodedText;
+
+                        } else {
+
+                            message.innerText =
+                                "Invalid attendance QR code.";
+
+                            button.disabled = false;
+
+                            button.style.opacity = "1";
+
+                        }
+
+                    })
+                    .catch(function(error) {
+
+                        console.log(error);
+
+                        window.location.href =
+                            decodedText;
+
+                    });
+
+            },
+
 
             function(errorMessage) {
 
-                // QR abhi detect nahi hua
-                console.log(errorMessage);
+                /*
+                 * QR not detected yet.
+                 * No message needed.
+                 */
+
+                console.log(
+                    "QR scanning:",
+                    errorMessage
+                );
 
             }
 
         ).catch(function(error) {
 
+            scannerRunning = false;
+
+            reader.style.display = "none";
+
+            button.disabled = false;
+
+            button.style.opacity = "1";
+
             message.innerText =
-                "Camera start nahi ho saka.";
+                "Unable to access the camera. Please allow camera permission and try again.";
 
             console.log(error);
 
@@ -323,6 +1181,7 @@
     }
 
 </script>
+
 
 </body>
 
