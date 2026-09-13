@@ -278,7 +278,9 @@ def scan_attendance(token):
         )
 
         if not result.data:
-            return "This attendance QR code is invalid or expired."
+            session["scanner_message"] = "This attendance QR code is invalid or expired."
+            session["scanner_message_type"] = "error"
+            return redirect(url_for("dashboard"))
 
         qr_session = result.data[0]
 
@@ -288,24 +290,25 @@ def scan_attendance(token):
 
         # QR must be generated today
         if qr_session["date"] != today:
-            return "This attendance QR code has expired."
+            session["scanner_message"] = "This attendance QR code has expired."
+            session["scanner_message_type"] = "error"
+            return redirect(url_for("dashboard"))
 
         # Check QR age (5 minutes)
         created_at = qr_session["created_at"]
 
-        # Convert Supabase timestamp to datetime
         created_at = datetime.fromisoformat(
             created_at.replace("Z", "+00:00")
         )
 
-        # Make current time timezone-aware
         current_time = datetime.now(created_at.tzinfo)
 
-        # QR age in seconds
         qr_age = (current_time - created_at).total_seconds()
 
         if qr_age > 300:
-            return "This attendance QR code has expired."
+            session["scanner_message"] = "This attendance QR code has expired."
+            session["scanner_message_type"] = "error"
+            return redirect(url_for("dashboard"))
 
         student_id = session.get("student_id")
 
@@ -320,7 +323,9 @@ def scan_attendance(token):
         )
 
         if existing.data:
-            return "Attendance has already been marked for today."
+            session["scanner_message"] = "Attendance has already been marked for today."
+            session["scanner_message_type"] = "error"
+            return redirect(url_for("dashboard"))
 
         # Mark attendance
         supabase.table("attendance").insert({
@@ -330,13 +335,20 @@ def scan_attendance(token):
             "status": "Present"
         }).execute()
 
-        return "Attendance marked successfully."
+        # Success message
+        session["scanner_message"] = "Attendance marked successfully."
+        session["scanner_message_type"] = "success"
+
+        return redirect(url_for("dashboard"))
 
     except Exception as error:
 
         print("ATTENDANCE ERROR:", repr(error))
 
-        return "Unable to mark attendance. Please try again."
+        session["scanner_message"] = "Unable to mark attendance. Please try again."
+        session["scanner_message_type"] = "error"
+
+        return redirect(url_for("dashboard"))
 
 
 # ================= MANUAL ATTENDANCE DISABLED =================
@@ -352,18 +364,18 @@ def mark_attendance():
 def monthly_record():
 
     if "student_id" not in session:
-
         return redirect(url_for("login"))
 
     month = request.args.get("month")
 
     if not month:
-
         month = datetime.now().strftime("%Y-%m")
 
     student_id = session["student_id"]
 
     try:
+
+        # ================= STUDENT =================
 
         student_result = (
             supabase
@@ -378,16 +390,17 @@ def monthly_record():
         students = student_result.data
 
         if not students:
-
             return "Student not found."
 
         student = students[0]
 
 
+        # ================= ATTENDANCE =================
+
         attendance_result = (
             supabase
             .table("attendance")
-            .select("*")
+            .select("id,date,time,status")
             .eq("student_id", student_id)
             .execute()
         )
@@ -395,9 +408,12 @@ def monthly_record():
         attendance_records = attendance_result.data
 
 
+        # ================= MONTH FILTER =================
+
+        monthly_attendance = []
+
         present = 0
         absent = 0
-
 
         for record in attendance_records:
 
@@ -405,21 +421,36 @@ def monthly_record():
 
             if record_date.startswith(month):
 
-                if record["status"] == "Present":
+                status = record["status"]
 
+                if status == "Present":
                     present += 1
 
-                elif record["status"] == "Absent":
-
+                elif status == "Absent":
                     absent += 1
 
+                monthly_attendance.append({
+                    "date": record_date,
+                    "time": record.get("time", ""),
+                    "status": status
+                })
+
+
+        # ================= SORT BY DATE =================
+
+        monthly_attendance.sort(
+            key=lambda x: x["date"],
+            reverse=True
+        )
+
+
+        # ================= SUMMARY =================
 
         total = present + absent
 
         percentage = 0
 
         if total > 0:
-
             percentage = round(
                 (present / total) * 100,
                 2
@@ -439,18 +470,21 @@ def monthly_record():
         }]
 
 
+        # ================= PAGE =================
+
         return render_template(
             "monthly_record.html",
             records=records,
-            month=month
+            month=month,
+            attendance=monthly_attendance
         )
+
 
     except Exception as e:
 
-        print("MONTHLY RECORD ERROR:", e)
+        print("MONTHLY RECORD ERROR:", repr(e))
 
-        return "Monthly record load nahi ho saka."
-
+        return "Unable to load monthly attendance record."
 
 # ================= LOGOUT =================
 
