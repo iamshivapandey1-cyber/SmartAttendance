@@ -1038,38 +1038,30 @@
 
     let scanner = null;
     let scannerRunning = false;
+    let attendanceProcessing = false;
 
 
     function startScanner() {
 
-        const reader =
-            document.getElementById("reader");
-
-        const message =
-            document.getElementById("scanner-message");
-
-        const button =
-            document.getElementById("scanButton");
+        const reader = document.getElementById("reader");
+        const message = document.getElementById("scanner-message");
+        const button = document.getElementById("scanButton");
 
 
-        if (scannerRunning) {
+        if (scannerRunning || attendanceProcessing) {
             return;
         }
 
 
         reader.style.display = "block";
 
-        message.innerText =
-            "Starting camera...";
+        message.innerText = "Starting camera...";
 
         button.disabled = true;
-
         button.style.opacity = "0.6";
 
 
-        scanner =
-            new Html5Qrcode("reader");
-
+        scanner = new Html5Qrcode("reader");
 
         scannerRunning = true;
 
@@ -1091,56 +1083,217 @@
 
             function(decodedText) {
 
+                if (attendanceProcessing) {
+                    return;
+                }
+
+                attendanceProcessing = true;
+
+
+                console.log("QR CODE DETECTED:", decodedText);
+
+
                 message.innerText =
                     "QR code detected. Verifying attendance...";
 
 
-                console.log(
-                    "Scanned QR:",
-                    decodedText
-                );
-
+                /*
+                 * Stop camera first
+                 */
 
                 scanner.stop()
                     .then(function() {
 
                         scannerRunning = false;
 
+
                         /*
-                         * The teacher QR contains the
-                         * student's attendance URL.
-                         *
-                         * Open that exact URL so the
-                         * server can validate the token.
+                         * Convert scanned text into URL
                          */
 
-                        if (
-                            decodedText.startsWith(
-                                window.location.origin
-                            )
-                        ) {
+                        let scannedUrl;
 
-                            window.location.href =
-                                decodedText;
+                        try {
 
-                        } else {
+                            scannedUrl = new URL(decodedText);
+
+                        } catch (error) {
+
+                            attendanceProcessing = false;
 
                             message.innerText =
                                 "Invalid attendance QR code.";
 
                             button.disabled = false;
-
                             button.style.opacity = "1";
 
+                            return;
                         }
+
+
+                        /*
+                         * Student website hostname
+                         */
+
+                        const studentHostname =
+                            window.location.hostname;
+
+
+                        /*
+                         * Check that QR belongs to
+                         * this Student website
+                         */
+
+                        if (
+                            scannedUrl.hostname !== studentHostname
+                        ) {
+
+                            attendanceProcessing = false;
+
+                            message.innerText =
+                                "Invalid attendance QR code.";
+
+                            button.disabled = false;
+                            button.style.opacity = "1";
+
+                            return;
+                        }
+
+
+                        /*
+                         * Check attendance URL
+                         *
+                         * Expected:
+                         *
+                         * /attendance/UNIQUE_TOKEN
+                         */
+
+                        if (
+                            !scannedUrl.pathname.startsWith(
+                                "/attendance/"
+                            )
+                        ) {
+
+                            attendanceProcessing = false;
+
+                            message.innerText =
+                                "Invalid attendance QR code.";
+
+                            button.disabled = false;
+                            button.style.opacity = "1";
+
+                            return;
+                        }
+
+
+                        /*
+                         * Make sure token exists
+                         */
+
+                        const token =
+                            scannedUrl.pathname
+                                .split("/attendance/")[1]
+                                .split("/")[0];
+
+
+                        if (!token) {
+
+                            attendanceProcessing = false;
+
+                            message.innerText =
+                                "Invalid attendance QR code.";
+
+                            button.disabled = false;
+                            button.style.opacity = "1";
+
+                            return;
+                        }
+
+
+                        /*
+                         * Everything looks correct.
+                         *
+                         * Now open the attendance URL.
+                         *
+                         * Flask will verify:
+                         *
+                         * 1. Student is logged in
+                         * 2. Token exists
+                         * 3. QR is active
+                         * 4. QR is today's QR
+                         * 5. QR is not older than 5 minutes
+                         * 6. Student has not already attended
+                         */
+
+                        message.innerText =
+                            "Attendance QR verified. Marking attendance...";
+
+
+                        window.location.href =
+                            window.location.origin +
+                            "/attendance/" +
+                            encodeURIComponent(token);
 
                     })
                     .catch(function(error) {
 
-                        console.log(error);
+                        console.log(
+                            "Scanner stop error:",
+                            error
+                        );
 
-                        window.location.href =
-                            decodedText;
+
+                        scannerRunning = false;
+
+                        /*
+                         * Even if camera stop has an issue,
+                         * continue with the scanned URL.
+                         */
+
+                        try {
+
+                            const scannedUrl =
+                                new URL(decodedText);
+
+                            if (
+                                scannedUrl.hostname ===
+                                window.location.hostname &&
+                                scannedUrl.pathname.startsWith(
+                                    "/attendance/"
+                                )
+                            ) {
+
+                                const token =
+                                    scannedUrl.pathname
+                                        .split("/attendance/")[1]
+                                        .split("/")[0];
+
+
+                                if (token) {
+
+                                    window.location.href =
+                                        window.location.origin +
+                                        "/attendance/" +
+                                        encodeURIComponent(token);
+
+                                    return;
+                                }
+                            }
+
+                        } catch (e) {
+
+                            console.log(e);
+
+                        }
+
+
+                        attendanceProcessing = false;
+
+                        message.innerText =
+                            "Invalid attendance QR code.";
+
+                        button.disabled = false;
+                        button.style.opacity = "1";
 
                     });
 
@@ -1150,8 +1303,8 @@
             function(errorMessage) {
 
                 /*
-                 * QR not detected yet.
-                 * No message needed.
+                 * QR has not been detected yet.
+                 * Do not show an error continuously.
                  */
 
                 console.log(
@@ -1163,24 +1316,28 @@
 
         ).catch(function(error) {
 
+            console.log(
+                "Camera error:",
+                error
+            );
+
+
             scannerRunning = false;
 
             reader.style.display = "none";
 
             button.disabled = false;
-
             button.style.opacity = "1";
 
             message.innerText =
                 "Unable to access the camera. Please allow camera permission and try again.";
-
-            console.log(error);
 
         });
 
     }
 
 </script>
+
 
 
 </body>
